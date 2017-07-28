@@ -1,0 +1,8 @@
+[package]
+name = "rs-opentherm"
+version = "0.0.1"
+authors = ["mredlek <mredlek@users.noreply.github.com>"]
+license = "MIT"
+
+[dependencies]
+bitflags="*"

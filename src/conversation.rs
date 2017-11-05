@@ -1,6 +1,6 @@
 use ::message::DataId;
 use ::message::{Message,MsgType};
-use ::{Error};
+use ::{Error, ErrorKind};
 use super::application::{ComplexType, OpenthermMessage};
 
 use ::std::ops::Deref;
@@ -65,7 +65,7 @@ impl Conversation
     pub fn new(request: &(Message + 'static), response: &(Message+ 'static)) -> Result<Conversation, Error>
     {
         if request.data_id() != response.data_id() {
-            return Err(Error::InvalidData); // Invalid response for request
+            return Err(ErrorKind::InvalidData.into()); // Invalid response for request
         }
 
         match request.msg_type() {
@@ -74,27 +74,27 @@ impl Conversation
                     MsgType::ReadAck => Ok(Conversation::Write(NullableComplexType::Data(
                         try!(response.data_value_complex())))),
                     MsgType::DataInvalid => Ok(Conversation::Read( NullableComplexType::Null { dataid: response.data_id()})),
-                    MsgType::UnknownDataId => Err(Error::UnknownDataId(response.data_id())),
-                    _ => Err(Error::InvalidData) // Invalid response for request
+                    MsgType::UnknownDataId => Err(ErrorKind::UnknownDataId(response.data_id()).into()),
+                    _ => Err(ErrorKind::InvalidData.into()) // Invalid response for request
                 }
             },
             MsgType::WriteData => {
                 match response.msg_type() {
                     MsgType::WriteAck=> Ok(Conversation::Write(NullableComplexType::Data(
                         try!(request.data_value_complex())))),
-                    MsgType::DataInvalid => Err(Error::InvalidData),
-                    MsgType::UnknownDataId => Err(Error::UnknownDataId(request.data_id())),
-                    _ => Err(Error::InvalidData) // Invalid response for request
+                    MsgType::DataInvalid => Err(ErrorKind::InvalidData.into()),
+                    MsgType::UnknownDataId => Err(ErrorKind::UnknownDataId(request.data_id()).into()),
+                    _ => Err(ErrorKind::InvalidData.into()) // Invalid response for request
                 }
             },
             MsgType::InvalidData => {
                 match response.msg_type() {
                     MsgType::DataInvalid => Ok(Conversation::Write(NullableComplexType::Null { dataid: response.data_id() })),
-                    MsgType::UnknownDataId => Err(Error::UnknownDataId(response.data_id())),
-                    _ => Err(Error::InvalidData) // Invalid response for request
+                    MsgType::UnknownDataId => Err(ErrorKind::UnknownDataId(response.data_id()).into()),
+                    _ => Err(ErrorKind::InvalidData.into()) // Invalid response for request
                 }
             },
-            _ => Err(Error::InvalidData) // Invalid response for request
+            _ => Err(ErrorKind::InvalidData.into()) // Invalid response for request
         }
     }
 }

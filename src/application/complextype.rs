@@ -1,7 +1,7 @@
 use super::{DataValue, SimpleTypeEnum, Message};
 use ::serde_derive;
 use ::message::{DataId};
-use ::Error;
+use ::{Error, ErrorKind};
 
 macro_rules! complextype {
     ( $( $mat:tt => $id:ident($token:ident) ),* ) =>
@@ -26,13 +26,13 @@ macro_rules! complextype {
                 $( $mat => {
                     if let Some(check) = super::$token::DATAID_DEFINITION.check {
                         if (check)(super::$token::DATAID_DEFINITION.simple_data(datavalue)).is_err() {
-                            return Err(Error::InvalidApplicationData);
+                            return Err(ErrorKind::InvalidApplicationData.into());
                         }
                     }
 
                     Ok(super::$token::DATAID_DEFINITION.complex_data(datavalue ).into())
                 } ),* ,
-                _ => Err(Error::UnknownDataId(dataid))
+                _ => Err(ErrorKind::UnknownDataId(dataid).into())
             }
         }
 
@@ -42,7 +42,7 @@ macro_rules! complextype {
                 $( $mat => {
                     Ok(super::$token::DATAID_DEFINITION.simple_data(datavalue ).into())
                 } ),* ,
-                _ => Err(Error::UnknownDataId(dataid))
+                _ => Err(ErrorKind::UnknownDataId(dataid).into())
             }
         }
 

@@ -4,44 +4,111 @@ use ::std::fmt::Display;
 use ::std::fmt::Formatter;
 use ::std::fmt::Result as FmtResult;
 
-/// List of errors that can occur while processing OpenTherm messages
-pub enum Error
-{
-    /// The dataid isn't supported
-    UnknownDataId(u8),
-    /// A dataid is used for writing which is readonly or reading data which is writeonly.
-    InvalidAccessMethod(u8),
-    /// Use of a reserved and thus current unsupported msgtype
-    InvalidMsgType,
-    /// Indicates that there is a problem with the payload of the message
-    InvalidData,
-    /// The payload didn't parse correct, probably because some values are out of range
-    InvalidApplicationData,
-    /// A response is received for unknown request
-    MissingRequest,
-    /// A request was send but no answer was received in tme
-    ResponseTimeout,
-    /// The parity of the message was odd instead of even.
-    IncorrectParity
+error_chain! {
+
+    errors {
+        /// Unknown dataid
+        UnknownDataId(dataid: u8) {
+            description("Unknown data id")
+            display("Unknown data id {}", dataid)
+        }
+        /// The access method isn't allowed for the dataid
+        InvalidAccessMethod(dataid: u8) {
+            description("Invalid access method")
+            display("Invalid access method for data id {}", dataid)
+        }
+
+        /// The msgtype of the message is invalid
+        InvalidMsgType {
+            description("Invalid msg type")
+            display("Invalid msg type")
+        }
+
+        /// The data payload of the message is invalid
+        InvalidData {
+            description("Invalid data")
+            display("Invalid data")
+        }
+
+        /// The application data payload of the message is invalid
+        InvalidApplicationData {
+            description("Invalid application data")
+            display("Invalid application data")
+        }
+
+        /// The request of the response is missing
+        MissingRequest {
+            description("Missing request")
+            display("Missing request")
+        }
+
+        /// No request is received in time
+        ResponseTimeout {
+            description("Response timeout")
+            display("Response timeout")
+        }
+
+        /// Message contains an incorrect parity
+        IncorrectParity {
+            description("Incorrect parity")
+            display("Incorrect parity")
+        }
+    }
 }
 
-impl Error
+/*impl Error
 {
     /// Creates a missing_request error. This is an error which is described in the OpenTherm
     /// specification but can't occur during parsing because it is caused by data not available.
     pub fn missing_request() -> Error
     {
-        Error::MissingRequest
+        Error::from(ErrorKind::MissingRequest)
     }
     /// Creates a request_timeout error. This is an error which is described in the OpenTherm
     /// specification but can't occur during parsing because it is caused by data not available.
     pub fn response_timeout() -> Error
     {
-        Error::ResponseTimeout
+        Error::from(ErrorKind::ResponseTimeout)
     }
-}
 
-impl StdError for Error
+    /// Creates an unknown_dataid error
+    pub fn unknown_dataid(dataid: u8) -> Error
+    {
+        Error::from(ErrorKind::UnknownDataId(dataid))
+    }
+
+    /// Creates an invalid access method error
+    pub fn invalid_access_method(dataid: u8) -> Error
+    {
+        Error::from(ErrorKind::InvalidAccessMethod(dataid))
+    }
+
+    /// Creates an invalid msgtype error
+    pub fn invalid_msgtype() -> Error
+    {
+        Error::from(ErrorKind::InvalidMsgType)
+    }
+
+    /// Creates an invalid data error
+    pub fn invalid_data() -> Error
+    {
+        Error::from(ErrorKind::InvalidData)
+    }
+
+    /// Creates an invalid applicationdata error
+    pub fn invalid_applicationdata() -> Error
+    {
+        Error::from(ErrorKind::InvalidApplicationData)
+    }
+
+    /// Creates an incorrect parity error
+    pub fn incorrect_parity() -> Error
+    {
+        Error::from(ErrorKind::IncorrectParity)
+    }
+}*/
+
+/*impl StdError for Error
 {
     fn description(&self) -> &str {
         match self {
@@ -88,3 +155,4 @@ impl Debug for Error
         }
     }
 }
+*/

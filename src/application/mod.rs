@@ -136,7 +136,7 @@ mod dataid127;
 mod flags8;
 mod simpletype;
 
-use ::Error;
+use ::{Error, ErrorKind};
 use ::message::{DataId, Message, MsgType};
 use ::std::ops::Index;
 use ::std::marker::PhantomData;
@@ -514,13 +514,13 @@ impl OpenthermMessage for Message
             125 => &dataid125::DATAID_DEFINITION,
             126 => &dataid126::DATAID_DEFINITION,
             127 => &dataid127::DATAID_DEFINITION,
-            _ => { return Err(Error::UnknownDataId(self.data_id())) }
+            _ => { return Err(ErrorKind::UnknownDataId(self.data_id()).into()) }
         };
 
         match self.msg_type() {
-            MsgType::ReadData | MsgType::ReadAck => if definition.read() { Ok(definition) } else { Err(Error::InvalidAccessMethod(self.data_id())) },
-            MsgType::WriteData | MsgType::WriteAck => if definition.write() { Ok(definition) } else { Err(Error::InvalidAccessMethod(self.data_id())) },
-            _ => Err(Error::InvalidAccessMethod(self.data_id())) //No access method is an invalid one
+            MsgType::ReadData | MsgType::ReadAck => if definition.read() { Ok(definition) } else { Err(ErrorKind::InvalidAccessMethod(self.data_id()).into()) },
+            MsgType::WriteData | MsgType::WriteAck => if definition.write() { Ok(definition) } else { Err(ErrorKind::InvalidAccessMethod(self.data_id()).into()) },
+            _ => Err(ErrorKind::InvalidAccessMethod(self.data_id()).into()) //No access method is an invalid one
         }
     }
 

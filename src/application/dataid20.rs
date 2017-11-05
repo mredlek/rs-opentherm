@@ -1,4 +1,4 @@
-use super::{DataClass, DataIdDefinition};
+use super::{DataClass, DataIdDefinition, Error, ErrorKind};
 use ::std::marker::PhantomData;
 
 pub type DataIdSimpleType = (u8, u8);
@@ -9,7 +9,7 @@ pub(crate) static DATAID_DEFINITION : DataIdDefinition<DataIdSimpleType, DataIdT
         class: DataClass::SensorAndInformationalData,
         read: true,
         write: true,
-        check: Some(|(st1, st2)| if (st1 & 0x1f) <= 23u8 && st2 <= 59u8  { Ok(()) } else { Err(super::Error::InvalidApplicationData) } ),
+        check: Some(|(st1, st2)| if (st1 & 0x1f) <= 23u8 && st2 <= 59u8  { Ok(()) } else { Err(ErrorKind::InvalidApplicationData.into()) } ),
         phantom_simple: PhantomData {},
         phantom_complex: PhantomData {}
     };

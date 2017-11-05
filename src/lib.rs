@@ -8,12 +8,15 @@ extern crate bitflags;
 extern crate serde_derive;
 extern crate serde;
 
+#[macro_use]
+extern crate error_chain;
+
 mod application;
 mod conversation;
 mod error;
 mod message;
 
-pub use error::Error;
+pub use error::{Error, ErrorKind};
 pub use message::*;
 pub use conversation::{Conversation, NullableComplexType};
 pub use application::*;

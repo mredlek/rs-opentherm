@@ -1,6 +1,6 @@
 use ::application::DataValue;
 use ::application::OpenthermMessage;
-use ::Error;
+use ::{Error, ErrorKind};
 
 use ::std::fmt::Result as FmtResult;
 use ::std::fmt::{Debug, Display,Formatter,Binary,UpperHex,LowerHex};
@@ -47,9 +47,9 @@ impl Message
     {
         let msg = self.data();
         if msg[0] & 0x70 == 0b00110000 {
-            Err(Error::InvalidMsgType)
+            Err(ErrorKind::InvalidMsgType.into())
         } else if parity_vec(&msg) != 0u8 {
-            Err(Error::IncorrectParity)
+            Err(ErrorKind::IncorrectParity.into())
         } else {
             Ok(())
         }

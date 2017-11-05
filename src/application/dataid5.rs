@@ -18,6 +18,7 @@ dataidtypedef!(application_specific_fault_flags: ApplicationSpecificFaultFlags, 
 
 bitflags! {
     /// Application specific fault flags
+    #[derive(Serialize, Deserialize)]
     pub struct ApplicationSpecificFaultFlags : u8
     {
         const SERVICE_REQUEST = 0x01;

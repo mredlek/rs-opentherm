@@ -18,6 +18,7 @@ dataidtypedef!(master_status: MasterStatus, slave_status: SlaveStatus);
 
 bitflags! {
     /// Masterstatus
+    #[derive(Serialize, Deserialize)]
     pub struct MasterStatus : u8
     {
         const CH_ENABLE = 0x01;
@@ -30,6 +31,7 @@ bitflags! {
 
 bitflags! {
     /// Slavestatus
+    #[derive(Serialize, Deserialize)]
     pub struct SlaveStatus : u8
     {
         const FAULT_INDICATION = 0x01;

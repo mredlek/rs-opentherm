@@ -158,7 +158,7 @@ impl From<f32> for SimpleTypeEnum
 
 impl SimpleTypeEnum
 {
-    pub(crate) fn new(msg: &Message) -> Result<SimpleTypeEnum, Error>
+    pub(crate) fn new(msg: &(Message + 'static)) -> Result<SimpleTypeEnum, Error>
     {
         super::complextype::to_simple_type(msg.data_id(), msg.data_value())
     }

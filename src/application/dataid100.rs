@@ -18,6 +18,7 @@ dataidtypedef!(remote_override_function: RemoteOverride);
 
 bitflags! {
     /// RemoteOverride
+    #[derive(Serialize, Deserialize)]
     pub struct RemoteOverride : u8
     {
         const MANUAL_CHANGE_CONFIGURATION = 0x01;

@@ -6,3 +6,5 @@ license = "MIT"
 
 [dependencies]
 bitflags="*"
+serde="*"
+serde_derive="*"

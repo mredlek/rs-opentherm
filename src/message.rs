@@ -6,9 +6,10 @@ use ::std::fmt::Result as FmtResult;
 use ::std::fmt::{Debug, Display,Formatter,Binary,UpperHex,LowerHex};
 
 /// Opentherm message
-pub struct Message
+pub trait Message
 {
-    data: [u8;4]
+    /// Get a slice tot the message
+    fn data(&self) -> &[u8];
 }
 
 /// MsgType of the opentherm message
@@ -42,21 +43,22 @@ impl Message
 {
     /// Creates a new message from four input bytes.
     /// The payload of msg is described in the OpenTherm documentation.
-    pub fn new(msg: [u8; 4]) -> Result<Message, Error>
+    pub fn check(&self) -> Result<(), Error>
     {
+        let msg = self.data();
         if msg[0] & 0x70 == 0b00110000 {
-            return Err(Error::InvalidMsgType);
+            Err(Error::InvalidMsgType)
+        } else if parity_vec(&msg) != 0u8 {
+            Err(Error::IncorrectParity)
+        } else {
+            Ok(())
         }
-        if parity_vec(&msg) != 0u8 {
-            return Err(Error::IncorrectParity);
-        }
-        Ok(Message { data: msg })
     }
 
     /// Returns the msg type of the message
     pub fn msg_type(&self) -> MsgType
     {
-        match self.data[0] & 0x70 {
+        match self.data()[0] & 0x70 {
             0b00000000 => MsgType::ReadData,
             0b00010000 => MsgType::WriteData,
             0b00100000 => MsgType::InvalidData,
@@ -71,7 +73,7 @@ impl Message
     /// Returns the payload of the message. The interprestation of the payload depends on the dataid.
     pub(crate) fn data_value<'this>(&'this self) -> DataValue<'this>
     {
-        DataValue::from(&self.data[2..4])
+        DataValue::from(&self.data()[2..4])
     }
 }
 
@@ -79,7 +81,7 @@ impl DataId for Message
 {
     fn data_id(&self) -> u8
     {
-        self.data[1]
+        self.data()[1]
     }
 }
 
@@ -127,13 +129,15 @@ impl Debug for Message {
 
 impl LowerHex for Message {
     fn fmt(&self, f: &mut Formatter) -> FmtResult {
-        write!(f, "{:02x}{:02x}{:02x}{:02x}", &self.data[0], &self.data[1], &self.data[2], &self.data[3])
+        let data = self.data();
+        write!(f, "{:02x}{:02x}{:02x}{:02x}", &data[0], &data[1], &data[2], &data[3])
     }
 }
 
 impl UpperHex for Message {
     fn fmt(&self, f: &mut Formatter) -> FmtResult {
-        write!(f, "{:02X}{:02X}{:02X}{:02X}", &self.data[0], &self.data[1], &self.data[2], &self.data[3])
+        let data = self.data();
+        write!(f, "{:02X}{:02X}{:02X}{:02X}", &data[0], &data[1], &data[2], &data[3])
     }
 }
 

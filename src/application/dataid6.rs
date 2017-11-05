@@ -18,6 +18,7 @@ dataidtypedef!(transfer_enabled_flags: RemoteParameter, readwrite_flags: RemoteP
 
 bitflags! {
     /// Remote parameter
+    #[derive(Serialize, Deserialize)]
     pub struct RemoteParameter : u8
     {
         const DHW_SETPOINT = 0x01;

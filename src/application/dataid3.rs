@@ -18,6 +18,7 @@ dataidtypedef!(slave_configuration: SlaveConfiguration, slave_memberid_code: u8)
 
 bitflags! {
     /// Slave configuration payload
+    #[derive(Serialize, Deserialize)]
     pub struct SlaveConfiguration : u8
     {
         const DWH_PRESENT = 0x01;

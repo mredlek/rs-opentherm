@@ -4,7 +4,9 @@
 
 #[macro_use]
 extern crate bitflags;
-
+#[macro_use]
+extern crate serde_derive;
+extern crate serde;
 
 mod application;
 mod conversation;

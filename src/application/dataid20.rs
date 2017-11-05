@@ -15,7 +15,7 @@ pub(crate) static DATAID_DEFINITION : DataIdDefinition<DataIdSimpleType, DataIdT
     };
 
 /// Struct to represent the day of the week
-#[derive(Clone,Copy,Debug)]
+#[derive(Clone,Copy,Debug,Serialize,Deserialize)]
 pub enum DayOfWeek
 {
     /// Monday (first day of the week)
@@ -35,7 +35,7 @@ pub enum DayOfWeek
 }
 
 /// Struct for dataid 20
-#[derive(Copy,Clone,Debug)]
+#[derive(Copy,Clone,Debug,Serialize,Deserialize)]
 pub struct DataIdType
 {
     day_of_week: Option<DayOfWeek>,

@@ -62,7 +62,7 @@ impl Into<Option<ComplexType>> for NullableComplexType
 impl Conversation
 {
     /// Creates a new conversation
-    pub fn new(request: Message, response: Message) -> Result<Conversation, Error>
+    pub fn new(request: &(Message + 'static), response: &(Message+ 'static)) -> Result<Conversation, Error>
     {
         if request.data_id() != response.data_id() {
             return Err(Error::InvalidData); // Invalid response for request

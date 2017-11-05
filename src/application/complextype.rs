@@ -1,4 +1,5 @@
 use super::{DataValue, SimpleTypeEnum, Message};
+use ::serde_derive;
 use ::message::{DataId};
 use ::Error;
 
@@ -6,7 +7,7 @@ macro_rules! complextype {
     ( $( $mat:tt => $id:ident($token:ident) ),* ) =>
         (
         /// An enumeration type which represents the dataid and payload of the message
-        #[derive(Copy, Clone, Debug)]
+        #[derive(Copy, Clone, Debug, Deserialize, Serialize)]
         pub enum ComplexType { $( /// Payload for dataid $id
             $id(super::$token::DataIdType) ),* }
 
@@ -127,7 +128,7 @@ complextype!(
 
 impl ComplexType
 {
-    pub(crate) fn new(msg: &Message) -> Result<ComplexType, Error>
+    pub(crate) fn new(msg: &(Message + 'static)) -> Result<ComplexType, Error>
     {
         to_complex_type(msg.data_id(), msg.data_value())
     }

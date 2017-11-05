@@ -3,7 +3,7 @@ use ::std::fmt::Result as FmtResult;
 
 /// This struct represent 8 bits where the content is dependend on other information.
 /// Usually, this a flags depending on the dataid.
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Serialize, Deserialize)]
 pub struct Flags8
 {
     /// The field containing the bits

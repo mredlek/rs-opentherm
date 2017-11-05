@@ -34,7 +34,7 @@ macro_rules! flags8 {
 macro_rules! dataidtypedef {
     ($name1:ident: $type1:ident) => {
         /// The payload of a message with dataid $id
-        #[derive(Copy, Clone, Debug)]
+        #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
         pub struct DataIdType {
             /// Field $name1 (description is available in the OpenTherm documentation)
             pub $name1: $type1
@@ -56,7 +56,7 @@ macro_rules! dataidtypedef {
     };
     ($name1:ident: $type1:ident, $name2:ident: $type2:ident) => {
         /// The payload of a message with dataid $id
-        #[derive(Copy, Clone, Debug)]
+        #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
         pub struct DataIdType {
             /// Field $name1 (description is available in the OpenTherm documentation)
             pub $name1: $type1,

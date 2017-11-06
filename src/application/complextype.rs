@@ -1,5 +1,4 @@
 use super::{DataValue, SimpleTypeEnum, Message};
-use ::serde_derive;
 use ::message::{DataId};
 use ::{Error, ErrorKind};
 

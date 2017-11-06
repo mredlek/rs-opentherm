@@ -1,4 +1,5 @@
-use super::{DataClass, DataIdDefinition, Error, ErrorKind};
+use super::{DataClass, DataIdDefinition};
+use ::{ErrorKind};
 use ::std::marker::PhantomData;
 
 pub type DataIdSimpleType = f32;

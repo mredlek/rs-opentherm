@@ -1,5 +1,5 @@
 [root]
-name = "rs-opentherm"
+name = "opentherm"
 version = "0.0.2"
 dependencies = [
  "bitflags 0.9.1 (registry+https://github.com/rust-lang/crates.io-index)",

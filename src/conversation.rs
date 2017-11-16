@@ -6,6 +6,7 @@ use super::application::{ComplexType, OpenthermMessage};
 use ::std::ops::Deref;
 
 /// The payload of a data field, or Null of no data was present.
+#[derive(Clone, Debug)]
 pub enum NullableComplexType
 {
     /// No data was present
@@ -18,6 +19,7 @@ pub enum NullableComplexType
 }
 
 /// A complete and succesfull conversation (request and response)
+#[derive(Clone, Debug)]
 pub enum Conversation
 {
     /// Succesfull read

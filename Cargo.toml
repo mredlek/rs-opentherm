@@ -1,11 +1,12 @@
 [package]
-name = "rs-opentherm"
+name = "opentherm"
 version = "0.0.2"
 authors = ["mredlek <mredlek@users.noreply.github.com>"]
 license = "MIT"
 
 [dependencies]
-bitflags="*"
+bitflags="0.9.1"
 serde="*"
 serde_derive="*"
 error-chain="*"
+log="*"

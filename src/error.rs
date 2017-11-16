@@ -33,17 +33,6 @@ error_chain! {
             display("Invalid application data")
         }
 
-        /// The request of the response is missing
-        MissingRequest {
-            description("Missing request")
-            display("Missing request")
-        }
-
-        /// No request is received in time
-        ResponseTimeout {
-            description("Response timeout")
-            display("Response timeout")
-        }
 
         /// Message contains an incorrect parity
         IncorrectParity {

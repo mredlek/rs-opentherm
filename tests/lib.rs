@@ -1,7 +1,7 @@
-extern crate rs_opentherm;
+extern crate opentherm;
 
 use ::std::ops::Deref;
-use rs_opentherm::{DataId, Message, MsgType};
+use opentherm::{DataId, Message, MsgType};
 
 pub struct TestMessage
 {

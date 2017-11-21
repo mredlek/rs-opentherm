@@ -1,12 +1,10 @@
-use ::message::DataId;
-use ::message::{Message,MsgType};
+use ::message::{AsDataId, AsDataValue, MsgType, AsMsgType};
 use ::{Error, ErrorKind};
-use super::application::{ComplexType, OpenthermMessage};
-
-use ::std::ops::Deref;
+use super::application::{ComplexType};
+use super::application::SimpleTypeEnum;
 
 /// The payload of a data field, or Null of no data was present.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub enum NullableComplexType
 {
     /// No data was present
@@ -18,8 +16,20 @@ pub enum NullableComplexType
     Data(ComplexType)
 }
 
+
+
+/// Read or Write
+#[derive(Copy, Clone, Serialize, Deserialize)]
+pub enum Method
+{
+    /// Read
+    Read,
+    /// Write
+    Write,
+}
+
 /// A complete and succesfull conversation (request and response)
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub enum Conversation
 {
     /// Succesfull read
@@ -28,17 +38,17 @@ pub enum Conversation
     Write(NullableComplexType)
 }
 
-impl DataId for Conversation
+impl AsDataId for Conversation
 {
-    fn data_id(&self) -> u8 {
+    fn as_data_id(&self) -> u8 {
         match self {
-            &Conversation::Read(ref data) => data.data_id(),
-            &Conversation::Write(ref data) => data.data_id()
+            &Conversation::Read(ref data) => data.as_data_id(),
+            &Conversation::Write(ref data) => data.as_data_id()
         }
     }
 }
 
-impl Deref for Conversation
+/*impl Deref for Conversation
 {
     type Target = NullableComplexType;
 
@@ -49,7 +59,7 @@ impl Deref for Conversation
             &Conversation::Write(ref data) => data
         }
     }
-}
+}*/
 
 impl Into<Option<ComplexType>> for NullableComplexType
 {
@@ -64,50 +74,81 @@ impl Into<Option<ComplexType>> for NullableComplexType
 impl Conversation
 {
     /// Creates a new conversation
-    pub fn new(request: &(Message + 'static), response: &(Message+ 'static)) -> Result<Conversation, Error>
+    pub fn new<Message: AsDataId + AsDataValue + AsMsgType>(request: &Message, response: &Message) -> Result<Conversation, Error>
     {
-        if request.data_id() != response.data_id() {
+        if request.as_data_id() != response.as_data_id() {
             return Err(ErrorKind::InvalidData.into()); // Invalid response for request
         }
 
-        match request.msg_type() {
+        match request.as_msg_type() {
             MsgType::ReadData => {
-                match response.msg_type() {
-                    MsgType::ReadAck => Ok(Conversation::Write(NullableComplexType::Data(
-                        try!(response.data_value_complex())))),
-                    MsgType::DataInvalid => Ok(Conversation::Read( NullableComplexType::Null { dataid: response.data_id()})),
-                    MsgType::UnknownDataId => Err(ErrorKind::UnknownDataId(response.data_id()).into()),
+                match response.as_msg_type() {
+                    MsgType::ReadAck => Ok(Conversation::Read(NullableComplexType::Data(
+                        try!(ComplexType::new_from_message(response))))),
+                    MsgType::DataInvalid => Ok(Conversation::Read( NullableComplexType::Null { dataid: response.as_data_id()})),
+                    MsgType::UnknownDataId => Err(ErrorKind::UnknownDataId(response.as_data_id()).into()),
                     _ => Err(ErrorKind::InvalidData.into()) // Invalid response for request
                 }
             },
             MsgType::WriteData => {
-                match response.msg_type() {
+                match response.as_msg_type() {
                     MsgType::WriteAck=> Ok(Conversation::Write(NullableComplexType::Data(
-                        try!(request.data_value_complex())))),
+                        try!(ComplexType::new_from_message(request))))),
                     MsgType::DataInvalid => Err(ErrorKind::InvalidData.into()),
-                    MsgType::UnknownDataId => Err(ErrorKind::UnknownDataId(request.data_id()).into()),
+                    MsgType::UnknownDataId => Err(ErrorKind::UnknownDataId(request.as_data_id()).into()),
                     _ => Err(ErrorKind::InvalidData.into()) // Invalid response for request
                 }
             },
             MsgType::InvalidData => {
-                match response.msg_type() {
-                    MsgType::DataInvalid => Ok(Conversation::Write(NullableComplexType::Null { dataid: response.data_id() })),
-                    MsgType::UnknownDataId => Err(ErrorKind::UnknownDataId(response.data_id()).into()),
+                match response.as_msg_type() {
+                    MsgType::DataInvalid => Ok(Conversation::Write(NullableComplexType::Null { dataid: response.as_data_id() })),
+                    MsgType::UnknownDataId => Err(ErrorKind::UnknownDataId(response.as_data_id()).into()),
                     _ => Err(ErrorKind::InvalidData.into()) // Invalid response for request
                 }
             },
             _ => Err(ErrorKind::InvalidData.into()) // Invalid response for request
         }
     }
+
+    /// Returns if this conversation is an attempt to read or to write data
+    pub fn method(&self) -> Method
+    {
+        match self {
+            &Conversation::Read(_) => Method::Read,
+            &Conversation::Write(_) => Method::Write,
+        }
+    }
+
+    /// Get the complex type
+    pub fn complex_type(&self) -> Option<&ComplexType>
+    {
+        match self {
+            &Conversation::Read(NullableComplexType::Data(ref complex)) |
+            &Conversation::Write(NullableComplexType::Data(ref complex)) => Some(complex),
+            _ => None
+        }
+    }
+
+    /// Get the simple type representation of the application data
+    pub fn simple_type(&self) -> Option<SimpleTypeEnum>
+    {
+        match self {
+            &Conversation::Read(NullableComplexType::Data(ref complex)) |
+            &Conversation::Write(NullableComplexType::Data(ref complex)) => {
+                Some(complex.clone().into())
+            },
+            _ => None
+        }
+    }
 }
 
-impl DataId for NullableComplexType
+impl AsDataId for NullableComplexType
 {
-    fn data_id(&self) -> u8
+    fn as_data_id(&self) -> u8
     {
         match self {
             &NullableComplexType::Null{ dataid } => dataid,
-            &NullableComplexType::Data(ref complextype) => complextype.data_id()
+            &NullableComplexType::Data(ref complextype) => complextype.as_data_id()
         }
     }
 }

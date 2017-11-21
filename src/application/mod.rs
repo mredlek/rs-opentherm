@@ -136,9 +136,7 @@ mod dataid127;
 mod flags8;
 mod simpletype;
 
-use ::{Error, ErrorKind};
-use ::message::{DataId, Message, MsgType};
-use ::std::ops::Index;
+use ::{Error};
 use ::std::marker::PhantomData;
 pub use self::flags8::Flags8;
 pub use self::simpletype::SimpleTypeEnum;
@@ -209,25 +207,32 @@ pub(crate) enum DataClass
     ControlOfSpecialialApplications
 }
 
-
-#[derive(Copy, Clone)]
-pub(crate) struct DataValue<'a>
+/*#[derive(Copy, Clone)]
+pub(crate) struct DataValueImpl<'a>
 {
     data: &'a[u8]
 }
 
-impl<'dv> From<&'dv[u8]> for DataValue<'dv>
+impl<'dv> From<&'dv[u8]> for DataValueImpl<'dv>
 {
-    fn from(input: &'dv [u8]) -> DataValue<'dv>
+    fn from(input: &'dv [u8]) -> DataValueImpl<'dv>
     {
         if input.len() != 2 {
             panic!("DataValue::from expect a slice of [u8; 2], got a slice of length {}", input.len());
         }
-        DataValue { data: input }
+        DataValueImpl { data: input }
     }
 }
 
-impl<'dv> Index<usize> for DataValue<'dv>
+impl<'dv> From<&'dv[u8; 2]> for DataValueImpl<'dv>
+{
+    fn from(input: &'dv [u8 ;2]) -> DataValueImpl<'dv>
+    {
+        DataValueImpl { data: input }
+    }
+}
+
+impl<'dv> Index<usize> for DataValueImpl<'dv>
 {
     type Output = u8;
 
@@ -240,7 +245,7 @@ impl<'dv> Index<usize> for DataValue<'dv>
     }
 }
 
-impl<'dv> Into<(u8, u8)> for DataValue<'dv>
+impl<'dv> Into<(u8, u8)> for DataValueImpl<'dv>
 {
     fn into(self) -> (u8, u8)
     {
@@ -248,7 +253,7 @@ impl<'dv> Into<(u8, u8)> for DataValue<'dv>
     }
 }
 
-impl<'dv> Into<(u8, i8)> for DataValue<'dv>
+impl<'dv> Into<(u8, i8)> for DataValueImpl<'dv>
 {
     fn into(self) -> (u8, i8)
     {
@@ -256,14 +261,14 @@ impl<'dv> Into<(u8, i8)> for DataValue<'dv>
     }
 }
 
-impl<'dv> Into<(u8, Flags8)> for DataValue<'dv>
+impl<'dv> Into<(u8, Flags8)> for DataValueImpl<'dv>
 {
     fn into(self) -> (u8, Flags8)
     {
         (self.data[0], Flags8::from(self.data[1]))
     }
 }
-impl<'dv> Into<(i8, u8)> for DataValue<'dv>
+impl<'dv> Into<(i8, u8)> for DataValueImpl<'dv>
 {
     fn into(self) -> (i8, u8)
     {
@@ -271,7 +276,7 @@ impl<'dv> Into<(i8, u8)> for DataValue<'dv>
     }
 }
 
-impl<'dv> Into<(i8, i8)> for DataValue<'dv>
+impl<'dv> Into<(i8, i8)> for DataValueImpl<'dv>
 {
     fn into(self) -> (i8, i8)
     {
@@ -279,7 +284,7 @@ impl<'dv> Into<(i8, i8)> for DataValue<'dv>
     }
 }
 
-impl<'dv> Into<(i8, Flags8)> for DataValue<'dv>
+impl<'dv> Into<(i8, Flags8)> for DataValueImpl<'dv>
 {
     fn into(self) -> (i8, Flags8)
     {
@@ -287,7 +292,7 @@ impl<'dv> Into<(i8, Flags8)> for DataValue<'dv>
     }
 }
 
-impl<'dv> Into<(Flags8, u8)> for DataValue<'dv>
+impl<'dv> Into<(Flags8, u8)> for DataValueImpl<'dv>
 {
     fn into(self) -> (Flags8, u8)
     {
@@ -295,7 +300,7 @@ impl<'dv> Into<(Flags8, u8)> for DataValue<'dv>
     }
 }
 
-impl<'dv> Into<(Flags8, i8)> for DataValue<'dv>
+impl<'dv> Into<(Flags8, i8)> for DataValueImpl<'dv>
 {
     fn into(self) -> (Flags8, i8)
     {
@@ -303,7 +308,7 @@ impl<'dv> Into<(Flags8, i8)> for DataValue<'dv>
     }
 }
 
-impl<'dv> Into<(Flags8, Flags8)> for DataValue<'dv>
+impl<'dv> Into<(Flags8, Flags8)> for DataValueImpl<'dv>
 {
     fn into(self) -> (Flags8, Flags8)
     {
@@ -312,7 +317,7 @@ impl<'dv> Into<(Flags8, Flags8)> for DataValue<'dv>
 }
 
 
-impl<'dv> Into<u8> for DataValue<'dv>
+impl<'dv> Into<u8> for DataValueImpl<'dv>
 {
     fn into(self) -> u8
     {
@@ -320,7 +325,7 @@ impl<'dv> Into<u8> for DataValue<'dv>
     }
 }
 
-impl<'dv> Into<i8> for DataValue<'dv>
+impl<'dv> Into<i8> for DataValueImpl<'dv>
 {
     fn into(self) -> i8
     {
@@ -328,7 +333,7 @@ impl<'dv> Into<i8> for DataValue<'dv>
     }
 }
 
-impl<'dv> Into<Flags8> for DataValue<'dv>
+impl<'dv> Into<Flags8> for DataValueImpl<'dv>
 {
     fn into(self) -> Flags8
     {
@@ -336,7 +341,7 @@ impl<'dv> Into<Flags8> for DataValue<'dv>
     }
 }
 
-impl<'dv> Into<u16> for DataValue<'dv>
+impl<'dv> Into<u16> for DataValueImpl<'dv>
 {
     fn into(self) -> u16
     {
@@ -345,7 +350,7 @@ impl<'dv> Into<u16> for DataValue<'dv>
 }
 
 
-impl<'dv> Into<i16> for DataValue<'dv>
+impl<'dv> Into<i16> for DataValueImpl<'dv>
 {
     fn into(self) -> i16
     {
@@ -354,13 +359,13 @@ impl<'dv> Into<i16> for DataValue<'dv>
 }
 
 
-impl<'dv> Into<f32> for DataValue<'dv>
+impl<'dv> Into<f32> for DataValueImpl<'dv>
 {
     fn into(self) -> f32
     {
         (self.data[0] as f32) + (self.data[1] as f32) / 256f32
     }
-}
+} */
 
 pub(crate) struct DataIdDefinition<SimpleType, ComplexType>
     where self::simpletype::SimpleTypeEnum: From<SimpleType>,
@@ -377,16 +382,16 @@ pub(crate) struct DataIdDefinition<SimpleType, ComplexType>
 
 impl<SimpleType, ComplexType> DataIdDefinition<SimpleType, ComplexType>
     where self::simpletype::SimpleTypeEnum: From<SimpleType>,
+          SimpleType: self::simpletype::SimpleType,
           ComplexType: From<SimpleType> + Into<SimpleType>
 {
-    pub fn simple_data<'dv>(&self, data_value: DataValue<'dv>) -> SimpleType
-        where DataValue<'dv>: Into<SimpleType>
+    pub fn simple_data<'dv>(&self, data_value: [u8; 2]) -> SimpleType
     {
-        data_value.into()
+        SimpleType::from_data(data_value)
     }
 
-    pub fn complex_data<'dv>(&self, data_value: DataValue<'dv>) -> ComplexType
-        where DataValue<'dv>: Into<SimpleType>
+    pub fn complex_data<'dv>(&self, data_value: [u8; 2]) -> ComplexType
+        //where DataValueImpl<'dv>: Into<SimpleType>
     {
         ComplexType::from(self.simple_data(data_value))
     }
@@ -409,8 +414,8 @@ pub(crate) trait DataIdDefinitionSimpleType
 {
     type SimpleType;
 
-    fn data<'dv>(&self, data_value: DataValue<'dv>) -> Self::SimpleType
-        where Self::SimpleType: From<DataValue<'dv>>;
+    fn data(&self, data_value: [u8; 2]) -> Self::SimpleType
+        where Self::SimpleType: self::simpletype::SimpleType;
 }
 
 impl<SimpleType, ComplexType> DataIdDefinitionUntyped for DataIdDefinition<SimpleType, ComplexType>
@@ -440,17 +445,18 @@ impl<SimpleType, ComplexType> DataIdDefinitionUntyped for DataIdDefinition<Simpl
 
 impl<SimpleType, ComplexType> DataIdDefinitionSimpleType for DataIdDefinition<SimpleType, ComplexType>
     where self::simpletype::SimpleTypeEnum: From<SimpleType>,
-          ComplexType: From<SimpleType>
+          ComplexType: From<SimpleType>,
+          SimpleType: self::simpletype::SimpleType
 {
     type SimpleType = SimpleType;
 
-    fn data<'dv>(&self, data_value: DataValue<'dv>) -> Self::SimpleType
-        where DataValue<'dv>: Into<SimpleType>
+    fn data(&self, data_value: [u8; 2]) -> Self::SimpleType
     {
-        data_value.into()
+        SimpleType::from_data(data_value)
     }
 }
 
+/*
 pub(crate) trait OpenthermMessage
 {
     fn data_id_definition(&self) -> Result<&'static DataIdDefinitionUntyped, Error>;
@@ -458,7 +464,7 @@ pub(crate) trait OpenthermMessage
     fn data_value_complex(&self) -> Result<ComplexType, Error>;
 }
 
-impl OpenthermMessage for Message
+impl<T: Sized + Message + 'static> OpenthermMessage for T
 {
     fn data_id_definition(&self) -> Result<&'static DataIdDefinitionUntyped, Error>
     {
@@ -517,7 +523,7 @@ impl OpenthermMessage for Message
             _ => { return Err(ErrorKind::UnknownDataId(self.data_id()).into()) }
         };
 
-        match self.msg_type() {
+        match (self as &Message).msg_type() {
             MsgType::ReadData | MsgType::ReadAck => if definition.read() { Ok(definition) } else { Err(ErrorKind::InvalidAccessMethod(self.data_id()).into()) },
             MsgType::WriteData | MsgType::WriteAck => if definition.write() { Ok(definition) } else { Err(ErrorKind::InvalidAccessMethod(self.data_id()).into()) },
             _ => Err(ErrorKind::InvalidAccessMethod(self.data_id()).into()) //No access method is an invalid one
@@ -526,12 +532,12 @@ impl OpenthermMessage for Message
 
     fn data_value_simple(&self) -> Result<SimpleTypeEnum, Error>
     {
-        SimpleTypeEnum::new(self)
+        SimpleTypeEnum::new_from_message(self)
     }
 
     fn data_value_complex(&self) -> Result<ComplexType, Error>
     {
-        ComplexType::new(self)
+        ComplexType::new::<T,T>(self, self)
     }
-}
+}*/
 

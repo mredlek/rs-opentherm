@@ -19,5 +19,5 @@ mod message;
 
 pub use error::{Error, ErrorKind};
 pub use message::*;
-pub use conversation::{Conversation, NullableComplexType};
+pub use conversation::{Conversation, NullableComplexType, Method as ConversationMethod};
 pub use application::*;

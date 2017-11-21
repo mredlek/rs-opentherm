@@ -1,5 +1,5 @@
-use super::{DataValue, SimpleTypeEnum, Message};
-use ::message::{DataId};
+use super::{SimpleTypeEnum};
+use ::message::{AsDataId, AsDataValue};
 use ::{Error, ErrorKind};
 
 macro_rules! complextype {
@@ -19,35 +19,39 @@ macro_rules! complextype {
             }
         )*
 
-        pub(crate) fn to_complex_type<'dv>(dataid: u8, datavalue: DataValue<'dv>) -> Result<ComplexType, Error>
+        impl ComplexType
         {
-            match dataid {
-                $( $mat => {
-                    if let Some(check) = super::$token::DATAID_DEFINITION.check {
-                        if (check)(super::$token::DATAID_DEFINITION.simple_data(datavalue)).is_err() {
-                            return Err(ErrorKind::InvalidApplicationData.into());
+            /// Construct a new complex type from the a dataid and a datavalue
+            pub fn new_from_data(dataid: u8, datavalue: [u8; 2]) -> Result<ComplexType, Error>
+            {
+                match dataid {
+                    $( $mat => {
+                        if let Some(check) = super::$token::DATAID_DEFINITION.check {
+                            if (check)(super::$token::DATAID_DEFINITION.simple_data(datavalue)).is_err() {
+                                return Err(ErrorKind::InvalidApplicationData.into());
+                            }
                         }
-                    }
 
-                    Ok(super::$token::DATAID_DEFINITION.complex_data(datavalue ).into())
-                } ),* ,
-                _ => Err(ErrorKind::UnknownDataId(dataid).into())
+                        Ok(super::$token::DATAID_DEFINITION.complex_data(datavalue ).into())
+                    } ),* ,
+                    _ => Err(ErrorKind::UnknownDataId(dataid).into())
+                }
             }
+
+            /*pub(crate) fn to_simple_type<'dv>(dataid: u8, datavalue: [u8; 2]) -> Result<SimpleTypeEnum, Error>
+            {
+                match dataid {
+                    $( $mat => {
+                        Ok(super::$token::DATAID_DEFINITION.simple_data(datavalue ).into())
+                    } ),* ,
+                    _ => Err(ErrorKind::UnknownDataId(dataid).into())
+                }
+            }*/
         }
 
-        pub(crate) fn to_simple_type<'dv>(dataid: u8, datavalue: DataValue<'dv>) -> Result<SimpleTypeEnum, Error>
+        impl AsDataId for ComplexType
         {
-            match dataid {
-                $( $mat => {
-                    Ok(super::$token::DATAID_DEFINITION.simple_data(datavalue ).into())
-                } ),* ,
-                _ => Err(ErrorKind::UnknownDataId(dataid).into())
-            }
-        }
-
-        impl DataId for ComplexType
-        {
-            fn data_id(&self) -> u8
+            fn as_data_id(&self) -> u8
             {
                 match self {
                     $( &ComplexType::$id(_) => $mat ),*
@@ -62,6 +66,17 @@ macro_rules! complextype {
                 match self
                 {
                     $( ComplexType::$id(data) => SimpleTypeEnum::from(super::$token::DATAID_DEFINITION.complex_to_simple(data)) ),*
+                }
+            }
+        }
+
+        impl AsDataValue for ComplexType
+        {
+            fn as_data_value(&self) -> [u8; 2]
+            {
+                match self
+                {
+                    $( &ComplexType::$id(data) => SimpleTypeEnum::from(super::$token::DATAID_DEFINITION.complex_to_simple(data)).as_data_value() ),*
                 }
             }
         }
@@ -127,9 +142,16 @@ complextype!(
 
 impl ComplexType
 {
-    pub(crate) fn new(msg: &(Message + 'static)) -> Result<ComplexType, Error>
+    /// Creates a new ComplexType for a type implementing DataId and DataValue
+    pub fn new_from_message<Msg: AsDataId + AsDataValue>(msg: &Msg) -> Result<ComplexType, Error>
     {
-        to_complex_type(msg.data_id(), msg.data_value())
+        ComplexType::new_from_data(msg.as_data_id(), msg.as_data_value())
+    }
+
+    /// Create a new ComplexType from a dataid and a datavalue
+    pub fn new<TDataId: AsDataId, TDataValue: AsDataValue>(dataid: &TDataId, datavalue: &AsDataValue) -> Result<ComplexType, Error>
+    {
+        ComplexType::new_from_data(dataid.as_data_id(), datavalue.as_data_value().into())
     }
 }
 

@@ -1,9 +1,7 @@
-use ::application::DataValue;
-use ::application::OpenthermMessage;
 use ::{Error, ErrorKind};
 
 use ::std::fmt::Result as FmtResult;
-use ::std::fmt::{Debug, Display,Formatter,Binary,UpperHex,LowerHex};
+use ::std::fmt::{Display,Formatter,Binary};
 
 /// Opentherm message
 pub trait Message
@@ -32,11 +30,25 @@ pub enum MsgType
     UnknownDataId
 }
 
+/// Trait for all types where an opentherm msgtype can be extracted
+pub trait AsMsgType
+{
+    /// The msg_type of self
+    fn as_msg_type(&self) -> MsgType;
+}
+
 /// Trait for all types where an opentherm dataid can be extracted
-pub trait DataId
+pub trait AsDataId
 {
     /// Function to return the data id of an opentherm message
-    fn data_id(&self) -> u8;
+    fn as_data_id(&self) -> u8;
+}
+
+/// Trait for all types where an opentherm datavalue can be extracted
+pub trait AsDataValue
+{
+    /// Function to return the data value
+    fn as_data_value(&self) -> [u8; 2];
 }
 
 impl Message
@@ -55,9 +67,32 @@ impl Message
         }
     }
 
-    /// Returns the msg type of the message
-    pub fn msg_type(&self) -> MsgType
+    /*
+    /// Returns the payload of the message. The interprestation of the payload depends on the dataid.
+    pub(crate) fn data_value<'this>(&'this self) -> DataValueImpl<'this>
     {
+        DataValueImpl::from(&self.data()[2..4])
+    }*/
+}
+
+impl<T: Message> AsDataId for T
+{
+    fn as_data_id(&self) -> u8 {
+        self.data()[1]
+    }
+}
+
+impl<T: Message> AsDataValue for T
+{
+    fn as_data_value(&self) -> [u8; 2]
+    {
+        [ self.data()[2], self.data()[3] ]
+    }
+}
+
+impl<T: Message> AsMsgType for T
+{
+    fn as_msg_type(&self) -> MsgType {
         match self.data()[0] & 0x70 {
             0b00000000 => MsgType::ReadData,
             0b00010000 => MsgType::WriteData,
@@ -69,21 +104,20 @@ impl Message
             _ => unreachable!()
         }
     }
-
-    /// Returns the payload of the message. The interprestation of the payload depends on the dataid.
-    pub(crate) fn data_value<'this>(&'this self) -> DataValue<'this>
-    {
-        DataValue::from(&self.data()[2..4])
-    }
 }
 
-impl DataId for Message
+/*impl DataId for Message
 {
     fn data_id(&self) -> u8
     {
         self.data()[1]
     }
 }
+
+impl DataValue for Message
+{
+    fn data_value(&self) -> [u8; 2] { [ self.data()[2], self.data()[3] ] }
+}*/
 
 impl Display for MsgType
 {
@@ -114,30 +148,6 @@ impl Binary for MsgType
             &MsgType::UnknownDataId => { try!(f.write_str("111")); },
         }
         Ok(())
-    }
-}
-
-impl Debug for Message {
-    fn fmt(&self, f: &mut Formatter) -> FmtResult {
-        f.debug_struct("Message")
-            .field("msgtype", &self.msg_type())
-            .field("dataid", &self.data_id())
-            .field("datavalue", &self.data_value_complex())
-            .finish()
-    }
-}
-
-impl LowerHex for Message {
-    fn fmt(&self, f: &mut Formatter) -> FmtResult {
-        let data = self.data();
-        write!(f, "{:02x}{:02x}{:02x}{:02x}", &data[0], &data[1], &data[2], &data[3])
-    }
-}
-
-impl UpperHex for Message {
-    fn fmt(&self, f: &mut Formatter) -> FmtResult {
-        let data = self.data();
-        write!(f, "{:02X}{:02X}{:02X}{:02X}", &data[0], &data[1], &data[2], &data[3])
     }
 }
 

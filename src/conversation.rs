@@ -48,6 +48,22 @@ impl AsDataId for Conversation
     }
 }
 
+impl Conversation
+{
+    /// Returns the data value of the conversation.
+    /// It the data is send as Null, it will return None
+    pub fn as_data_value(&self) -> Option<[u8; 2]> {
+        let nullabledata = match self {
+            &Conversation::Read(ref data) => data,
+            &Conversation::Write(ref data) => data,
+        };
+        match nullabledata {
+            &NullableComplexType::Null { .. } => None,
+            &NullableComplexType::Data(complex) => Some(complex.as_data_value()),
+        }
+    }
+}
+
 /*impl Deref for Conversation
 {
     type Target = NullableComplexType;
